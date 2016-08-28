@@ -1,44 +1,30 @@
 #include<iostream>
+#include<limits>
 #include<fstream>
 #include<glm/glm.hpp>
-#include<glm/vec3.hpp>
 #include "ray.hpp"
+#include "hitable_list.hpp"
+#include "sphere.hpp"
 
 using namespace std;
 using namespace glm;
 
-float hit_sphere(const vec3& center, float radius, const ray& r)
+vec3 color(const ray& r, hitable *world)
 {
-    vec3 oc = r.origin() - center;
-    float a = dot(r.direction(), r.direction());
-    float b = 2.0f*dot(oc, r.direction());
-    float c = dot(oc, oc) - radius*radius;
-
-    float discrimiant = (b*b - 4*a*c);
-    if(discrimiant < 0)
+    hit_record rec;
+    if(world->hit(r, 0.0, numeric_limits<float>::max(), rec))
     {
-        return -1.0f;
+        return 0.5f*vec3(rec.normal.x + 1.0f, rec.normal.y + 1.0f, rec.normal.z + 1.0f);
     }
     else
     {
-        return (-b - sqrt(discrimiant))/(2.0f*a);
+        vec3 unit_direction = normalize(r.direction());
+        float t = 0.5*(unit_direction.y + 1.0);
+
+        //return blend between blue and white
+        return (1.0f-t)*vec3(1.0f) + t*vec3(0.5f, 0.7f, 1.0f);
     }
 }
-
-vec3 color(const ray& r)
-{
-    float t = hit_sphere(vec3(0.0f, 0.0f, -2.0f), 0.5f, r);
-    if(t > 0.0f)
-    {
-        vec3 normal = normalize(r.point_at_parameter(t) - vec3(0.0f, 0.0f, -2.0f));
-        return 0.5f*vec3(normal.x + 1.0f, normal.y + 1.0f, normal.z + 1.0f);
-    }
-    vec3 unit_dir = normalize(vec3(r.direction()));
-    t = 0.5f*(unit_dir.y + 1.0f);
-    //return blend between blue and white
-    return (1.0f-t)*vec3(1.0f) + t*vec3(0.5f, 0.7f, 1.0f);
-}
-
 int main()
 {
     ofstream fout;
@@ -52,6 +38,12 @@ int main()
     vec3 vertical(0.0f, 2.0f, 0.0f);
     vec3 origin(0.0f);
 
+    hitable *list[2];
+    list[0] = new sphere(vec3(0.0f, -100.5f, -1.0f), 100.0);
+    list[1] = new sphere(vec3(0.0f, 0.0f, -1.0f), 0.5);
+
+    hitable *world = new hitable_list(list, 2);
+
     for(int j=ny-1; j>=0; j--)
     {
         for(int i=0;i < nx; ++i)
@@ -60,7 +52,8 @@ int main()
             float v = float(j)/float(ny);
             ray r(origin, lower_left_corner + u*horizontal + v*vertical);
 
-            vec3 col = color(r);
+            vec3 p = r.point_at_parameter(1.0); //why 2?
+            vec3 col = color(r, world);
             int ir = int(255.99*col.r);
             int ig = int(255.99*col.g);
             int ib = int(255.99*col.b);
