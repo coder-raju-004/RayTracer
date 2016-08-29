@@ -5,8 +5,8 @@
 
 struct hit_record
 {
-    float t;
-    vec3 p;
+    float t;    //parameter of where ray hits
+    vec3 p;     //hitpoint
     vec3 normal;
 };
 
