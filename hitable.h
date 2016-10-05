@@ -2,12 +2,14 @@
 #define HITABLE_H
 
 #include "ray.hpp"
+#include "material.h"
 
 struct hit_record
 {
     float t;    //parameter of where ray hits
     vec3 p;     //hitpoint
     vec3 normal;
+    material* mat;
 };
 
 class hitable
