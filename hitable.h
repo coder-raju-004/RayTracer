@@ -8,8 +8,8 @@ class material;
 struct hit_record
 {
     float t;    //parameter of where ray hits
-    vec3 p;     //hitpoint
-    vec3 normal;
+    glm::vec3 p;     //hitpoint
+    glm::vec3 normal;
     material* mat;
 };
 
